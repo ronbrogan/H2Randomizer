@@ -42,6 +42,8 @@ namespace H2Randomizer
         private MemoryBlock mem;
 
         private nint seedAddress;
+        private nint squadIndex;
+        private nint squadSpawnIndex;
 
         private int charCount;
         private nint allowedChars;
@@ -52,6 +54,9 @@ namespace H2Randomizer
         private nint allowedWeaps;
         private nint weapIndexes;
         private nint weapRng;
+
+        private int bannedSquadCount;
+        private nint bannedSquads;
 
         private ICommandSink h2;
 
@@ -190,8 +195,6 @@ namespace H2Randomizer
         }
 
         private string lastLevel = null;
-        private int bannedSquadCount;
-        private nint bannedSquads;
 
         private async Task PollLevelName()
         {
@@ -310,6 +313,10 @@ namespace H2Randomizer
             mem.Allocate(4, out this.seedAddress, alignment: 1);
             this.h2.WriteAt(this.seedAddress, seed);
 
+            // squadIndex and squadSpawnIndex is to store the spawn info during char roll for use in weap roll
+            mem.Allocate(4, out this.squadIndex, alignment: 1);
+            mem.Allocate(4, out this.squadSpawnIndex, alignment: 1);
+
             if (this.AllowedCharacters.TryGetValue(this.context.Level, out var chars))
             {
                 var (maxChar, charIndexes) = chars;
@@ -358,7 +365,9 @@ namespace H2Randomizer
 
         public void WriteCharIndexRng()
         {
-            var asm = RngCodeGen.GenerateCharRng(seedAddress, 
+            var asm = RngCodeGen.GenerateCharRng(this.seedAddress,
+                this.squadIndex,
+                this.squadSpawnIndex,
                 this.charCount, 
                 this.allowedChars, 
                 this.charIndexes,
@@ -385,7 +394,12 @@ namespace H2Randomizer
 
         public void WriteWeapIndexRng()
         {
-            var bytes = RngCodeGen.GenerateWeapRng(seedAddress, this.weapCount, this.allowedWeaps, this.weapIndexes);
+            var bytes = RngCodeGen.GenerateWeapRng(this.seedAddress,
+                this.squadIndex,
+                this.squadSpawnIndex, 
+                this.weapCount, 
+                this.allowedWeaps, 
+                this.weapIndexes);
 
             if(this.weapRng == default)
             {

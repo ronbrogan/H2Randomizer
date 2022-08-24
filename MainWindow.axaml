@@ -39,7 +39,7 @@
 					<Label Content="{Binding Process}"></Label>
 					<Label Content="{Binding Level}"></Label>
 				</StackPanel>
-				<Label HorizontalAlignment="Right" Foreground="Black">v0.0.2</Label>
+				<Label HorizontalAlignment="Right" Foreground="Black">v0.0.3</Label>
 			</StackPanel>
 		</Grid>
 		

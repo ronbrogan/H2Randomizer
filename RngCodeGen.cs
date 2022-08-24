@@ -1,4 +1,5 @@
 ﻿using Iced.Intel;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,10 +14,11 @@ namespace H2Randomizer
 {
     public static class RngCodeGen
     {
-        public static byte[] GenerateCharRng(nint seedAddress, int charCount, nint allowedCharLoc, nint charIndexesLoc, int bannedSquadCount, nint bannedSquads)
+        public static byte[] GenerateCharRng(nint seedAddress, nint squadIndex, nint squadSpawnIndex, int charCount, nint allowedCharLoc, nint charIndexesLoc, int bannedSquadCount, nint bannedSquads)
         {
             // original character is in dx
             // squad is in r8 as a multiple of record size (116)
+            // squad starting location index is in rdi
 
             var a = new Assembler(64);
             var allowCheck = a.CreateLabel("allowCheck");
@@ -30,20 +32,26 @@ namespace H2Randomizer
             a.push(r14);
             a.push(r9);
 
+            a.mov(r9, squadSpawnIndex);
+            a.mov(__[r9], rdi);
+
+            // store dx in r9 while we're setting up squad check
+            a.xor(r9, r9);
+            a.mov(r9w, dx);
+
+            a.mov(esi, 116);
+            a.mov(eax, r8d);
+            a.xor(rdx, rdx);
+            a.div(esi);
+            a.mov(rdx, r9); // restore dx back
+            a.mov(r9d, eax); // move squad index (result if div) into r9
+            a.mov(rsi, squadIndex);
+            a.mov(__[rsi], eax); // store squad index for later (weapon roll)
+
             if (bannedSquadCount > 0)
             {
                 var loop = a.CreateLabel("loop");
 
-                // store dx in r9 while we're setting up squad check
-                a.xor(r9, r9);
-                a.mov(r9w, dx);
-
-                a.mov(esi, 116);
-                a.mov(eax, r8d);
-                a.xor(rdx, rdx);
-                a.div(esi);
-                a.mov(rdx, r9); // restore dx back
-                a.mov(r9d, eax); // move squad index (result if div) into r9
                 a.mov(ax, dx); // pre-emptively put squad into ax for bail branch
 
                 a.mov(rsi, bannedSquads);
@@ -80,7 +88,7 @@ namespace H2Randomizer
 
             // randomize
             a.Label(ref randomize);
-            a.GenerateCoreRng(seedAddress);
+            a.GenerateCoreRng(seedAddress, squadIndex, squadSpawnIndex);
 
             // do lookup for allowed character
             a.lea(rax, __dword_ptr[rsi + rax * 4]);
@@ -102,7 +110,7 @@ namespace H2Randomizer
             return ms.ToArray();
         }
 
-        public static byte[] GenerateWeapRng(nint seedAddress, int weapCount, nint allowedWeapLoc, nint weapIndexesLoc)
+        public static byte[] GenerateWeapRng(nint seedAddress, nint squadIndex, nint squadSpawnIndex, int weapCount, nint allowedWeapLoc, nint weapIndexesLoc)
         {
             // original weapon is in cx,
             // result needs to be in r9d and end with a test r9d, r9d for the jump
@@ -143,7 +151,7 @@ namespace H2Randomizer
 
             // randomize
             a.Label(ref randomize);
-            a.GenerateCoreRng(seedAddress);
+            a.GenerateCoreRng(seedAddress, squadIndex, squadSpawnIndex);
             
 
             // do lookup for allowed character
@@ -202,17 +210,29 @@ namespace H2Randomizer
             return memoryStream.ToArray();
         }
 
-        private static void GenerateCoreRng(this Assembler a, nint seedAddress)
+        private static void GenerateCoreRng(this Assembler a, nint seedAddress, nint squadIndex, nint squadSpawnIndex)
         {
+            a.push(r15);
+            a.xor(r15, r15);
             a.mov(rax, seedAddress);
-            a.imul(eax, __dword_ptr[rax], 0x343fd);
+            a.imul(eax, __[rax], 0x343fd);
+            a.mov(r15, squadIndex);
+            a.mov(r15, __[r15]);
+            a.lea(r15, __[r15 + 1]);
+            a.imul(r15d, eax);
+            a.imul(eax, r15d, 0x41C64E6D);
+            a.mov(r15, squadSpawnIndex);
+            a.mov(r15, __[r15]);
+            a.lea(r15, __[r15 + 1]);
+            a.imul(r15d, eax);
+            a.imul(eax, r15d, 0x343fd);
             a.add(eax, 0x269ec3);
-            a.mov(__dword_ptr[seedAddress], eax);
             a.sar(eax, 0x10);
             a.and(eax, 0x7fff);
             a.cdq();
             a.idiv(r12); // divide by char count
             a.mov(eax, edx); // put remainder in eax
+            a.pop(r15);
         }
     }
 }
