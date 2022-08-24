@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="425"
+		Width="450"
+		Height="425"
+        x:Class="H2Randomizer.MainWindow"
+        Title="H2Randomizer"
+		TransparencyLevelHint="AcrylicBlur"
+		Background="Transparent"
+		ExtendClientAreaToDecorationsHint="True"
+		CanResize="False"
+		Icon="H2Randomizer.ico">
+	<Panel>
+		<ExperimentalAcrylicBorder IsHitTestVisible="False">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial
+					 BackgroundSource="Digger"
+					 TintColor="Black"
+					 TintOpacity="1"
+					 MaterialOpacity="0.55" />
+			</ExperimentalAcrylicBorder.Material>
+		</ExperimentalAcrylicBorder>
+
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="45"></RowDefinition>
+				<RowDefinition Height="155"></RowDefinition>
+			</Grid.RowDefinitions>
+			<Label Grid.Row="0" Margin="4" Background="Transparent" Width="125" HorizontalAlignment="Left" IsHitTestVisible="False">H2 Randomizer</Label>
+			<StackPanel Grid.Row="1" Margin="25 0 25 0" >
+				<Label>Seed:</Label>
+				<TextBox Text="{Binding SeedText}"></TextBox>
+				<CheckBox Content="Randomize Weapons" IsChecked="{Binding ShouldRandomizeWeapons}"></CheckBox>
+				<Label>Logs:</Label>
+				<TextBox Name="Logs" Text="{Binding Logs}" IsReadOnly="True" Focusable="False" Height="200" MaxHeight="200" TextWrapping="Wrap"></TextBox>
+				<StackPanel Orientation="Horizontal">
+					<Label Content="{Binding Process}"></Label>
+					<Label Content="{Binding Level}"></Label>
+				</StackPanel>
+				<Label HorizontalAlignment="Right" Foreground="Black">v0.0.1</Label>
+			</StackPanel>
+		</Grid>
+		
+	</Panel>
+	
+</Window>
