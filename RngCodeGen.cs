@@ -1,13 +1,5 @@
 ﻿using Iced.Intel;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using static Iced.Intel.AssemblerRegisters;
 
 namespace H2Randomizer
