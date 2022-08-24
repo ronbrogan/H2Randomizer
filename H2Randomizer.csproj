@@ -7,7 +7,7 @@
 		<TrimMode>copyused</TrimMode>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>0.0.1</Version>
+		<Version>0.0.2</Version>
 		<ApplicationIcon>H2Randomizer.ico</ApplicationIcon>
 	</PropertyGroup>
 	<ItemGroup>

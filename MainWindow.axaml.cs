@@ -55,58 +55,62 @@ namespace H2Randomizer
 
         private ICommandSink h2;
 
-        private Dictionary<string, int[]> AllowedCharacters = new()
+        // These have a separate max, because the max in our allowed may not be the same, and there
+        // needs to be enough in the check array at runtime for all possible options
+        private Dictionary<string, (int max, int[])> AllowedCharacters = new()
         {
-            ["01a_tutorial"] = new[] { 0, 1, 2, 3, 4 },
-            ["01b_spacestation"] = new[] { 0, 1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18 },
-            ["03a_oldmombasa"] = new[] { 0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14 },
-            ["03b_newmombasa"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14 },
-            ["04a_gasgiant"] = new[] { 0, 1, 2, 3, 5 },
-            ["04b_floodlab"] = new[] { 0, 1, 2, 3, 4, 6, 8, 11 },
-            ["05a_deltaapproach"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 },
-            ["05b_deltatowers"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 },
-            ["06a_sentinelwalls"] = new[] { 0, 2, 3, 4, 5, 7, 9, 10, 11, 14, 15, 16, 17, 18, 19 },
-            ["06b_floodzone"] = new[] { 1, 2, 3, 4, 6, 7, 8, 9, 10, 11 },
-            ["07a_highcharity"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25 },
-            ["07b_forerunnership"] = new[] { 0, 1, 2, 4,/*jugg*/ 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
-            ["08a_deltacliffs"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 },
-            ["08b_deltacontrol"] = new[] { 0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 14, 15, 17, 18, 19 },
+            ["01a_tutorial"] = (4, new[] { 0, 1, 2, 3, 4 }),
+            ["01b_spacestation"] = (19, new[] { 0, 1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18 }),
+            ["03a_oldmombasa"] = (14, new[] { 0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14 }),
+            ["03b_newmombasa"] = (14, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14 }),
+            ["04a_gasgiant"] = (5, new[] { 0, 1, 2, 3, 5 }),
+            ["04b_floodlab"] = (12, new[] { 0, 1, 2, 3, 4, 6, 8, 11 }),
+            ["05a_deltaapproach"] = (12, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }),
+            ["05b_deltatowers"] = (12, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }),
+            ["06a_sentinelwalls"] = (19, new[] { 0, 2, 3, 4, 5, 7, 9, 10, 11, 14, 15, 16, 17, 18, 19 }),
+            ["06b_floodzone"] = (11, new[] { 1, 2, 3, 4, 6, 7, 8, 9, 10, 11 }),
+            ["07a_highcharity"] = (27, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25 }),
+            ["07b_forerunnership"] = (17, new[] { 0, 1, 2, 4,/*jugg*/ 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }),
+            ["08a_deltacliffs"] = (11, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }),
+            ["08b_deltacontrol"] = (19, new[] { 0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 14, 15, 17, 18, 19 }),
+        };
+
+        // These have a separate max, because the max in our allowed may not be the same, and there
+        // needs to be enough in the check array at runtime for all possible options
+        private Dictionary<string, (int max, int[])> Weapons = new()
+        {
+            ["01a_tutorial"] = (0, new[] { 0 }),
+            ["01b_spacestation"] = (10, new[] { 0, 1, 2, 3, 4, 5, 8, 9 }),
+            ["03a_oldmombasa"] = (16, new[] { 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 14 }),
+            ["03b_newmombasa"] = (14, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13 }),
+            ["04a_gasgiant"] = (10, new[] { 0, 1, 2, 3, 4, 5, 6, 7 }),
+            ["04b_floodlab"] = (6, new[] { 0, 1, 2, 3, 4, 5 }),
+            ["05a_deltaapproach"] = (14, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }),
+            ["05b_deltatowers"] = (15, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15 }),
+            ["06a_sentinelwalls"] = (14, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 13 }),
+            ["06b_floodzone"] = (12, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11 }),
+            ["07a_highcharity"] = (12, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }),
+            ["07b_forerunnership"] = (16, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15 }),
+            ["08a_deltacliffs"] = (11, new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }),
+            ["08b_deltacontrol"] = (12, new[] { 0, 1, 2, 3, 5, 6, 7, 8, 9 })
         };
 
         private Dictionary<string, int[]> BannedSquadIndexes = new()
         {
-            ["01a_tutorial"] =       new int[] { },
-            ["01b_spacestation"] =   new int[] { },
-            ["03a_oldmombasa"] =     new int[] { },
-            ["03b_newmombasa"] =     new int[] { },
-            ["04a_gasgiant"] =       new int[] { },
-            ["04b_floodlab"] =       new int[] { },
-            ["05a_deltaapproach"] =  new int[] { },
-            ["05b_deltatowers"] =    new int[] { },
-            ["06a_sentinelwalls"] =  new int[] { 83, 84, 85, 86, 87, 88, 90, 91, 92, 93, 94, 95, 96, 97, 98, 107 }, // end fight squads
-            ["06b_floodzone"] =      new int[] { },
-            ["07a_highcharity"] =    new int[] { },
+            ["01a_tutorial"] = new int[] { },
+            ["01b_spacestation"] = new int[] { },
+            ["03a_oldmombasa"] = new int[] { },
+            ["03b_newmombasa"] = new int[] { },
+            ["04a_gasgiant"] = new int[] { },
+            ["04b_floodlab"] = new int[] { },
+            ["05a_deltaapproach"] = new int[] { },
+            ["05b_deltatowers"] = new int[] { },
+            ["06a_sentinelwalls"] = new int[] { 83, 84, 85, 86, 87, 88, 90, 91, 92, 93, 94, 95, 96, 97, 98, 107 }, // end fight squads
+            ["06b_floodzone"] = new int[] { },
+            ["07a_highcharity"] = new int[] { },
             ["07b_forerunnership"] = new int[] { },
-            ["08a_deltacliffs"] =    new int[] { },
-            ["08b_deltacontrol"] =   new int[] { 97, 102 }, // tartar sauce
-        };
-
-        private Dictionary<string, int[]> Weapons = new()
-        {
-            ["01a_tutorial"] = new[] { 0 },
-            ["01b_spacestation"] = new[] { 0, 1, 2, 3, 4, 5, 8, 9 },
-            ["03a_oldmombasa"] = new[] { 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 14 },
-            ["03b_newmombasa"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13 },
-            ["04a_gasgiant"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7 },
-            ["04b_floodlab"] = new[] { 0, 1, 2, 3, 4, 5 },
-            ["05a_deltaapproach"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
-            ["05b_deltatowers"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15 },
-            ["06a_sentinelwalls"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 13 },
-            ["06b_floodzone"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11 },
-            ["07a_highcharity"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
-            ["07b_forerunnership"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15 },
-            ["08a_deltacliffs"] = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
-            ["08b_deltacontrol"] = new[] { 0, 1, 2, 3, 5, 6, 7, 8, 9 }
+            ["08a_deltacliffs"] = new int[] { },
+            ["08b_deltacontrol"] = new int[] { 97, 102 }, // tartar sauce
         };
 
         public MainWindow()
@@ -306,12 +310,14 @@ namespace H2Randomizer
             mem.Allocate(4, out this.seedAddress, alignment: 1);
             this.h2.WriteAt(this.seedAddress, seed);
 
-            if (this.AllowedCharacters.TryGetValue(this.context.Level, out var charIndexes))
+            if (this.AllowedCharacters.TryGetValue(this.context.Level, out var chars))
             {
+                var (maxChar, charIndexes) = chars;
+
                 this.charCount = charIndexes.Length;
 
-                var allowLookup = new int[charIndexes.Max()+1];
-                for (int i = 0; i <= charIndexes.Max(); i++)
+                var allowLookup = new int[maxChar + 1];
+                for (int i = 0; i <= maxChar; i++)
                     allowLookup[i] = charIndexes.Contains(i) ? 1 : 0;
 
                 mem.Allocate(sizeof(int) * allowLookup.Length, out this.allowedChars, alignment: 1);
@@ -329,12 +335,14 @@ namespace H2Randomizer
                 this.h2.WriteAt(this.bannedSquads, MemoryMarshal.AsBytes<int>(bannedSquads));
             }
 
-            if(this.Weapons.TryGetValue(this.context.Level, out var weapons))
+            if(this.Weapons.TryGetValue(this.context.Level, out var weaps))
             {
+                var (maxWeapon, weapons) = weaps;
+
                 this.weapCount = weapons.Length;
 
-                var allowLookup = new int[weapons.Max()+1];
-                for (int i = 0; i <= weapons.Max(); i++)
+                var allowLookup = new int[maxWeapon + 1];
+                for (int i = 0; i <= maxWeapon; i++)
                     allowLookup[i] = weapons.Contains(i) ? 1 : 0;
 
                 mem.Allocate(sizeof(int) * allowLookup.Length, out this.allowedWeaps, alignment: 1);
