@@ -106,11 +106,11 @@ namespace H2Randomizer
             ["01b_spacestation"] = new int[] { },
             ["03a_oldmombasa"] = new int[] { },
             ["03b_newmombasa"] = new int[] { },
-            ["04a_gasgiant"] = new int[] { },
-            ["04b_floodlab"] = new int[] { },
+            ["04a_gasgiant"] = new int[] { 37, 44,  }, // sentinels for hangar
+            ["04b_floodlab"] = new int[] { 29, 30, 31, 32, 132 }, // lab fight and boss fight
             ["05a_deltaapproach"] = new int[] { },
             ["05b_deltatowers"] = new int[] { },
-            ["06a_sentinelwalls"] = new int[] { 83, 84, 85, 86, 87, 88, 90, 91, 92, 93, 94, 95, 96, 97, 98, 107 }, // end fight squads
+            ["06a_sentinelwalls"] = new int[] { 83, 84, 85, 86, 87, 88, 90, 91, 92, 93, 94, 95, 96, 97, 98, 107, 108, 109, 110, 111, 112 }, // end fight squads, cutscene
             ["06b_floodzone"] = new int[] { },
             ["07a_highcharity"] = new int[] { },
             ["07b_forerunnership"] = new int[] { },
