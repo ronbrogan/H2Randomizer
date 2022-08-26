@@ -25,7 +25,7 @@ namespace H2Randomizer
             a.push(r9);
 
             a.mov(r9, alloc.SquadSpawnIndex);
-            a.mov(__[r9], rdi);
+            a.mov(__[r9], edi);
 
             // store dx in r9 while we're setting up squad check
             a.xor(r9, r9);
@@ -89,6 +89,8 @@ namespace H2Randomizer
             a.Record(LogType.CharacterChoice, alloc, eax);
 
             // end
+            a.mov(r9, alloc.CharacterIndex);
+            a.mov(__[r9], eax);
             a.Label(ref end);
             a.pop(r9);
             a.pop(r14);
@@ -110,6 +112,7 @@ namespace H2Randomizer
             // result needs to be in r9d and end with a test r9d, r9d for the jump
 
             var a = new Assembler(64);
+            var emptyCheck = a.CreateLabel("emptyCheck");
             var allowCheck = a.CreateLabel("allowCheck");
             var randomize = a.CreateLabel("randomize");
             var end = a.CreateLabel("end");
@@ -124,20 +127,34 @@ namespace H2Randomizer
 
             a.xor(r9, r9);
 
-            a.mov(r12, level.WeapCount);
+            a.mov(r14, alloc.CharacterIndex);
+            a.mov(r14d, __[r14]);
+            a.imul(r14d, r14d, 12);
+
+            a.mov(r13, level.CharWeaponsLookup);
+            a.mov(r12d, __[r13 + r14]);  // weapon lookup count
+            a.mov(rsi, __[r13 + r14 + 4]);  // weapon address
+
+            //a.mov(r12, level.WeapCount);
             a.mov(r13, alloc.SeedAddress);
             a.mov(r14, level.AllowedWeaps);
-            a.mov(rsi, level.WeapIndexes);
+            //a.mov(rsi, level.WeapIndexes);
 
             // check if we've been given -1. If so, put into r9 and return
             a.cmp(cx, -1);
-            a.jne(allowCheck);
+            a.jne(emptyCheck);
             a.mov(r9w, cx);
             a.jmp(end);
 
+            // check if there aren't any character-specific weapons, if so, put -1 in r9 and return
+            a.Label(ref emptyCheck);
+            a.cmp(r12d, 0);
+            a.jne(allowCheck);
+            a.mov(r9, -1);
+            a.jmp(end);
+
             a.Label(ref allowCheck);
-            a.lea(r14, __dword_ptr[r14 + rcx * 4]);
-            a.mov(r14, __dword_ptr[r14]);
+            a.mov(r14, __dword_ptr[r14 + rcx * 4]);
             a.cmp(r14d, 1);
             a.je(randomize);
             a.mov(r9w, cx);

@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static H2Randomizer.RngCodeGen;
 
@@ -158,8 +159,11 @@ namespace H2Randomizer
             }
         }
 
+        private CancellationTokenSource logPollCts = new();
+
         public void LevelChange(string level)
         {
+            this.logPollCts.Cancel();
             this.lastLevel = level;
 
             if (string.IsNullOrEmpty(level))
@@ -175,6 +179,9 @@ namespace H2Randomizer
             else
             {
                 this.context.Level = level;
+                
+                this.logPollCts = new();
+
                 this.randomizer = new Randomizer(this.offsets, this.Process, this.context, this.h2, this.mem, this.AppendLog);
 
                 if (this.randomizer.TryHook())
@@ -188,7 +195,7 @@ namespace H2Randomizer
 
         private void PollLogs()
         {
-            _ = this.h2.PollMemoryAt(this.randomizer.Alloc.LogIndex, 500, 4100, ProcessLogs);
+            _ = this.h2.PollMemoryAt(this.randomizer.Alloc.LogIndex, 500, 4100, ProcessLogs, this.logPollCts.Token);
         }
 
         private void ProcessLogs(ReadOnlySpan<byte> logBytes)

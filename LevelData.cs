@@ -67,7 +67,7 @@ namespace H2Randomizer
             return charField?.Name ?? value.ToString();
         }
 
-        public static LevelDataAllocation Write(ILevelData data, MemoryBlock mem, ICommandSink h2)
+        public unsafe static LevelDataAllocation Write(ILevelData data, MemoryBlock mem, ICommandSink h2)
         {
             var alloc = new LevelDataAllocation();
 
@@ -90,17 +90,35 @@ namespace H2Randomizer
             h2.WriteAt(alloc.BannedSquads, MemoryMarshal.AsBytes<int>(data.BannedSquadIndexes));
 
             // weapons
-            alloc.WeapCount = data.ValidWeapons.Length;
+            //alloc.WeapCount = data.ValidWeapons.Length;
 
             var allowLookup2 = new int[data.MaxWeapon + 1];
             for (int i = 0; i <= data.MaxWeapon; i++)
                 allowLookup2[i] = data.ValidWeapons.Contains(i) ? 1 : 0;
 
             mem.Allocate(sizeof(int) * allowLookup2.Length, out alloc.AllowedWeaps, alignment: 1);
-            mem.Allocate(sizeof(int) * data.ValidWeapons.Length, out alloc.WeapIndexes, alignment: 1);
+            //mem.Allocate(sizeof(int) * data.ValidWeapons.Length, out alloc.WeapIndexes, alignment: 1);
 
             h2.WriteAt(alloc.AllowedWeaps, MemoryMarshal.AsBytes<int>(allowLookup2));
-            h2.WriteAt(alloc.WeapIndexes, MemoryMarshal.AsBytes<int>(data.ValidWeapons));
+            //h2.WriteAt(alloc.WeapIndexes, MemoryMarshal.AsBytes<int>(data.ValidWeapons));
+
+
+            var chars = data.ValidCharacterWeapons.Keys.ToArray();
+            var lookupLength = chars.Max()+1;
+
+            var lookupTableEntrySize = sizeof(int) + sizeof(nint); // count + pointer
+
+            mem.Allocate(lookupTableEntrySize * lookupLength, out alloc.CharWeaponsLookup, alignment: 1);
+
+            foreach(var (key, weaps) in data.ValidCharacterWeapons)
+            {
+                var spot = alloc.CharWeaponsLookup + lookupTableEntrySize * key;
+                mem.Allocate(sizeof(int) * weaps.Length, out var slotData, alignment: 1);
+
+                h2.WriteAt(spot, weaps.Length);
+                h2.WriteAt(spot + sizeof(int), slotData);
+                h2.WriteAt(slotData, MemoryMarshal.AsBytes<int>(weaps));
+            }
 
             return alloc;
         }
@@ -113,9 +131,9 @@ namespace H2Randomizer
         public nint AllowedChars;
         public int BannedSquadCount;
         public nint BannedSquads;
-        public int WeapCount;
         public nint AllowedWeaps;
-        public nint WeapIndexes;
+
+        public nint CharWeaponsLookup;
     }
 
 
@@ -184,7 +202,7 @@ namespace H2Randomizer
         public Dictionary<int, int[]> ValidCharacterWeapons => new Dictionary<int, int[]>
         {
             [elite] = ValidWeapons,
-            [grunt] = ValidWeapons.Without(battle_rifle, energy_blade, shotgun),
+            [grunt] = ValidWeapons.Without(battle_rifle, energy_blade, shotgun, smg),
             [marine] = ValidWeapons.Without(energy_blade),
             [marine_johnson] = ValidWeapons,
             [bugger] = ValidWeapons.Without(energy_blade),
@@ -194,13 +212,13 @@ namespace H2Randomizer
             [miranda] = ValidWeapons.Without(energy_blade),
             [elite_ranger] = ValidWeapons.Without(energy_blade),
             [elite_specops] = ValidWeapons,
-            [grunt_heavy] = ValidWeapons.Without(energy_blade),
+            [grunt_heavy] = ValidWeapons.Without(energy_blade, battle_rifle, shotgun, smg),
             [elite_stealth] = ValidWeapons,
-            [cortana] = ValidWeapons.Without(energy_blade),
+            [cortana] = Array.Empty<int>(),
             [marine_dress] = ValidWeapons.Without(energy_blade),
             [elite_zealot] = ValidWeapons,
             [elite_ultra] = ValidWeapons,
-            [grunt_ultra] = ValidWeapons.Without(energy_blade),
+            [grunt_ultra] = ValidWeapons.Without(energy_blade, battle_rifle, shotgun, smg),
             [elite_major] = ValidWeapons,
             [marine_johnson_dress] = ValidWeapons.Without(energy_blade),
         };
@@ -249,18 +267,18 @@ namespace H2Randomizer
         {
             [elite] = ValidWeapons,
             [marine] = ValidWeapons.Without(energy_blade),
-            [grunt] = ValidWeapons.Without(energy_blade),
-            [jackal] = ValidWeapons.Without(energy_blade),
+            [grunt] = ValidWeapons.Without(energy_blade, battle_rifle, smg),
+            [jackal] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [bugger] = ValidWeapons.Without(energy_blade),
             [hunter] = ValidWeapons,
             [marine_johnson] = ValidWeapons,
             [elite_ultra] = ValidWeapons,
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [marine_sgt] = ValidWeapons,
             [elite_zealot] = ValidWeapons,
             [elite_stealth] = ValidWeapons,
             [elite_major] = ValidWeapons,
-            [grunt_heavy] = ValidWeapons.Without(energy_blade),
+            [grunt_heavy] = ValidWeapons.Without(energy_blade, battle_rifle, smg),
             [marine] = ValidWeapons.Without(energy_blade),
         };
     }
@@ -306,19 +324,19 @@ namespace H2Randomizer
         {
             [elite] = ValidWeapons,
             [marine] = ValidWeapons,
-            [grunt] = ValidWeapons.Without(energy_blade),
-            [jackal] = ValidWeapons.Without(energy_blade),
+            [grunt] = ValidWeapons.Without(energy_blade, battle_rifle, shotgun, smg),
+            [jackal] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [elite_ultra] = ValidWeapons,
             [marine_female] = ValidWeapons.Without(energy_blade),
             [elite_major] = ValidWeapons,
-            [grunt_major] = ValidWeapons.Without(energy_blade),
-            [grunt_ultra] = ValidWeapons.Without(energy_blade),
+            [grunt_major] = ValidWeapons.Without(energy_blade, battle_rifle, shotgun, smg),
+            [grunt_ultra] = ValidWeapons.Without(energy_blade, battle_rifle, shotgun, smg),
             [marine_johnson] = ValidWeapons,
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [marine_sgt] = ValidWeapons.Without(energy_blade),
             [elite_stealth] = ValidWeapons,
             [elite_zealot] = ValidWeapons,
-            [grunt_heavy] = ValidWeapons.Without(energy_blade),
+            [grunt_heavy] = ValidWeapons.Without(energy_blade, battle_rifle, shotgun, smg),
         };
     }
 
@@ -449,15 +467,15 @@ namespace H2Randomizer
             [marine] = ValidWeapons.Without(energy_blade),
             [elite] = ValidWeapons,
             [bugger] = ValidWeapons.Without(energy_blade),
-            [grunt] = ValidWeapons.Without(energy_blade),
-            [jackal] = ValidWeapons.Without(),
+            [grunt] = ValidWeapons.Without(energy_blade, battle_rifle, smg),
+            [jackal] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [elite_honor_guard] = ValidWeapons,
             [marine_odst] = ValidWeapons.Without(energy_blade),
             [marine_female] = ValidWeapons.Without(energy_blade),
             [elite_stealth] = ValidWeapons,
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [elite_ranger] = ValidWeapons,
-            [grunt_heavy] = ValidWeapons.Without(energy_blade),
+            [grunt_heavy] = ValidWeapons.Without(energy_blade, battle_rifle, smg),
             [marine_sgt] = ValidWeapons.Without(energy_blade),
         };
     }
@@ -498,22 +516,22 @@ namespace H2Randomizer
         public const int magnum = 15;
         public int MaxWeapon => magnum;
         public int[] ValidCharacters => new[] { elite, elite_honor_guard, grunt, jackal, hunter, bugger, marine, marine_female, elite_ranger, jackal_sniper, prophet_regret, elite_stealth, marine_sgt };
-        public int[] ValidWeapons => new[] { energy_blade, plasma_pistol, needler, battle_rifle, beam_rifle, covenant_carbine, plasma_rifle, smg, sniper_rifle, shotgun, hunter_particle_cannon, rocket_launcher, flak_cannon, magnum };
+        public int[] ValidWeapons => new[] { energy_blade, plasma_pistol, needler, battle_rifle, beam_rifle, covenant_carbine, plasma_rifle, smg, sniper_rifle, shotgun, rocket_launcher, flak_cannon, magnum };
         public Dictionary<int, int[]> ValidCharacterWeapons => new Dictionary<int, int[]>
         {
             [elite] = ValidWeapons,
             [elite_honor_guard] = ValidWeapons,
-            [grunt] = ValidWeapons.Without(energy_blade),
-            [jackal] = ValidWeapons.Without(energy_blade),
+            [grunt] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [jackal] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [hunter] = Array.Empty<int>(),
-            [bugger] = ValidWeapons.Without(energy_blade),
-            [marine] = ValidWeapons.Without(energy_blade),
-            [marine_female] = ValidWeapons.Without(energy_blade),
+            [bugger] = ValidWeapons.Without(energy_blade, flak_cannon),
+            [marine] = ValidWeapons.Without(energy_blade, flak_cannon),
+            [marine_female] = ValidWeapons.Without(energy_blade, flak_cannon),
             [elite_ranger] = ValidWeapons,
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
-            [prophet_regret] = ValidWeapons.Without(energy_blade),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
+            [prophet_regret] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [elite_stealth] = ValidWeapons,
-            [marine_sgt] = ValidWeapons.Without(energy_blade),
+            [marine_sgt] = ValidWeapons.Without(energy_blade, flak_cannon),
         };
     }
 
@@ -567,7 +585,7 @@ namespace H2Randomizer
             [floodcombat_elite] = ValidWeapons,
             [flood_carrier] = Array.Empty<int>(),
             [marine] = ValidWeapons.Without(energy_blade),
-            [jackal_major] = ValidWeapons.Without(energy_blade),
+            [jackal_major] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [flood_infection] = Array.Empty<int>(),
             [elite_specops] = ValidWeapons,
             [flood_infection] = Array.Empty<int>(),
@@ -576,10 +594,10 @@ namespace H2Randomizer
             [sentinel_aggressor_eliminator] = ValidWeapons.Without(energy_blade),
             [elite_specops_commander] = ValidWeapons,
             [sentinel_constructor] = new[] { sentinel_aggressor_welder },
-            [grunt_major] = ValidWeapons.Without(energy_blade),
-            [grunt_ultra] = ValidWeapons.Without(energy_blade),
-            [grunt_heavy] = ValidWeapons.Without(energy_blade),
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
+            [grunt_major] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [grunt_ultra] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [grunt_heavy] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [brute] = ValidWeapons.Without(energy_blade),
             [elite_honor_guard] = ValidWeapons,
         };
@@ -762,20 +780,20 @@ namespace H2Randomizer
         {
             [floodcombat_elite] = ValidWeapons,
             [brute] = ValidWeapons.Without(energy_blade),
-            [jackal] = ValidWeapons.Without(energy_blade),
+            [jackal] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [flood_infection] = Array.Empty<int>(),
             [flood_combat_human] = ValidWeapons,
             [flood_juggernaut] = Array.Empty<int>(),
             [flood_carrier] = Array.Empty<int>(),
-            [grunt] = ValidWeapons.Without(energy_blade),
-            [grunt_major] = ValidWeapons.Without(energy_blade),
-            [grunt_ultra] = ValidWeapons.Without(energy_blade),
-            [bugger] = ValidWeapons.Without(energy_blade),
+            [grunt] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [grunt_major] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [grunt_ultra] = ValidWeapons.Without(energy_blade, shotgun, battle_rifle, smg),
+            [bugger] = ValidWeapons.Without(energy_blade, flak_cannon),
             [brute_honor_guard] = ValidWeapons.Without(energy_blade),
             [brute_major] = ValidWeapons.Without(energy_blade),
             [brute_captain] = ValidWeapons.Without(energy_blade),
-            [jackal_major] = ValidWeapons.Without(energy_blade),
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
+            [jackal_major] = ValidWeapons.Without(energy_blade, rocket_launcher),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
             [floodcombat_elite_shielded] = ValidWeapons,
             [cortana] = ValidWeapons,
         };
@@ -817,16 +835,16 @@ namespace H2Randomizer
         {
             [elite] = ValidWeapons,
             [brute] = ValidWeapons.Without(energy_blade),
-            [jackal] = ValidWeapons.Without(energy_blade),
-            [bugger] = ValidWeapons.Without(energy_blade),
+            [jackal] = ValidWeapons.Without(energy_blade, rocket_launcher),
+            [bugger] = ValidWeapons.Without(energy_blade, flak_cannon),
             [hunter] = Array.Empty<int>(),
-            [grunt] = ValidWeapons.Without(energy_blade),
+            [grunt] = ValidWeapons.Without(energy_blade, shotgun),
             [elite_stealth] = ValidWeapons,
             [elite_stealth_major] = ValidWeapons,
             [elite_zealot] = ValidWeapons,
             [elite_specops] = ValidWeapons,
             [brute_captain] = ValidWeapons.Without(energy_blade),
-            [jackal_sniper] = ValidWeapons.Without(energy_blade),
+            [jackal_sniper] = ValidWeapons.Without(energy_blade, rocket_launcher),
         };
     }
 

@@ -95,6 +95,7 @@ namespace H2Randomizer
             // squadIndex and squadSpawnIndex is to store the spawn info during char roll for use in weap roll
             mem.Allocate(4, out Alloc.SquadIndex, alignment: 1);
             mem.Allocate(4, out Alloc.SquadSpawnIndex, alignment: 1);
+            mem.Allocate(4, out Alloc.CharacterIndex, alignment: 1);
 
             mem.Allocate(4100, out Alloc.LogIndex, alignment: 64);
             Alloc.Logs = Alloc.LogIndex + 4;
@@ -154,6 +155,7 @@ namespace H2Randomizer
         public nint SeedAddress;
         public nint SquadIndex;
         public nint SquadSpawnIndex;
+        public nint CharacterIndex;
         public nint charRng;
         public nint weapRng;
 
