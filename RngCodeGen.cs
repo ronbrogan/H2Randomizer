@@ -6,7 +6,7 @@ namespace H2Randomizer
 {
     public static class RngCodeGen
     {
-        public static byte[] GenerateCharRng(nint seedAddress, nint squadIndex, nint squadSpawnIndex, int charCount, nint allowedCharLoc, nint charIndexesLoc, int bannedSquadCount, nint bannedSquads)
+        public static byte[] GenerateCharRng(RandomizerAllocation alloc, LevelDataAllocation level)
         {
             // original character is in dx
             // squad is in r8 as a multiple of record size (116)
@@ -24,7 +24,7 @@ namespace H2Randomizer
             a.push(r14);
             a.push(r9);
 
-            a.mov(r9, squadSpawnIndex);
+            a.mov(r9, alloc.SquadSpawnIndex);
             a.mov(__[r9], rdi);
 
             // store dx in r9 while we're setting up squad check
@@ -37,17 +37,17 @@ namespace H2Randomizer
             a.div(esi);
             a.mov(rdx, r9); // restore dx back
             a.mov(r9d, eax); // move squad index (result if div) into r9
-            a.mov(rsi, squadIndex);
+            a.mov(rsi, alloc.SquadIndex);
             a.mov(__[rsi], eax); // store squad index for later (weapon roll)
 
-            if (bannedSquadCount > 0)
+            if (level.BannedSquadCount > 0)
             {
                 var loop = a.CreateLabel("loop");
 
                 a.mov(ax, dx); // pre-emptively put squad into ax for bail branch
 
-                a.mov(rsi, bannedSquads);
-                a.mov(rdi, bannedSquadCount);
+                a.mov(rsi, level.BannedSquads);
+                a.mov(rdi, level.BannedSquadCount);
                 a.lea(rdi, __[rsi + rdi * 4]);
 
                 a.Label(ref loop);
@@ -59,10 +59,10 @@ namespace H2Randomizer
                 a.jl(loop);
             }
 
-            a.mov(r12, charCount);
-            a.mov(r13, seedAddress);
-            a.mov(r14, allowedCharLoc);
-            a.mov(rsi, charIndexesLoc);
+            a.mov(r12, level.CharCount);
+            a.mov(r13, alloc.SeedAddress);
+            a.mov(r14, level.AllowedChars);
+            a.mov(rsi, level.CharIndexes);
 
             // check if we've been given -1. If so, put into ax and return
             a.cmp(dx, -1);
@@ -80,11 +80,13 @@ namespace H2Randomizer
 
             // randomize
             a.Label(ref randomize);
-            a.GenerateCoreRng(seedAddress, squadIndex, squadSpawnIndex);
+            a.GenerateCoreRng(alloc);
 
             // do lookup for allowed character
             a.lea(rax, __dword_ptr[rsi + rax * 4]);
             a.mov(eax, __dword_ptr[rax]);
+
+            a.Record(LogType.CharacterChoice, alloc, eax);
 
             // end
             a.Label(ref end);
@@ -102,7 +104,7 @@ namespace H2Randomizer
             return ms.ToArray();
         }
 
-        public static byte[] GenerateWeapRng(nint seedAddress, nint squadIndex, nint squadSpawnIndex, int weapCount, nint allowedWeapLoc, nint weapIndexesLoc)
+        public static byte[] GenerateWeapRng(RandomizerAllocation alloc, LevelDataAllocation level)
         {
             // original weapon is in cx,
             // result needs to be in r9d and end with a test r9d, r9d for the jump
@@ -122,10 +124,10 @@ namespace H2Randomizer
 
             a.xor(r9, r9);
 
-            a.mov(r12, weapCount);
-            a.mov(r13, seedAddress);
-            a.mov(r14, allowedWeapLoc);
-            a.mov(rsi, weapIndexesLoc);
+            a.mov(r12, level.WeapCount);
+            a.mov(r13, alloc.SeedAddress);
+            a.mov(r14, level.AllowedWeaps);
+            a.mov(rsi, level.WeapIndexes);
 
             // check if we've been given -1. If so, put into r9 and return
             a.cmp(cx, -1);
@@ -143,12 +145,14 @@ namespace H2Randomizer
 
             // randomize
             a.Label(ref randomize);
-            a.GenerateCoreRng(seedAddress, squadIndex, squadSpawnIndex);
+            a.GenerateCoreRng(alloc);
             
 
-            // do lookup for allowed character
+            // do lookup for allowed weapon
             a.lea(rax, __dword_ptr[rsi + rax * 4]);
             a.mov(r9d, __dword_ptr[rax]);
+
+            a.Record(LogType.WeaponChoice, alloc, r9d);
 
             // end
             a.Label(ref end);
@@ -202,18 +206,18 @@ namespace H2Randomizer
             return memoryStream.ToArray();
         }
 
-        private static void GenerateCoreRng(this Assembler a, nint seedAddress, nint squadIndex, nint squadSpawnIndex)
+        private static void GenerateCoreRng(this Assembler a, RandomizerAllocation alloc)
         {
             a.push(r15);
             a.xor(r15, r15);
-            a.mov(rax, seedAddress);
+            a.mov(rax, alloc.SeedAddress);
             a.imul(eax, __[rax], 0x343fd);
-            a.mov(r15, squadIndex);
+            a.mov(r15, alloc.SquadIndex);
             a.mov(r15, __[r15]);
             a.lea(r15, __[r15 + 1]);
             a.imul(r15d, eax);
             a.imul(eax, r15d, 0x41C64E6D);
-            a.mov(r15, squadSpawnIndex);
+            a.mov(r15, alloc.SquadSpawnIndex);
             a.mov(r15, __[r15]);
             a.lea(r15, __[r15 + 1]);
             a.imul(r15d, eax);
@@ -225,6 +229,61 @@ namespace H2Randomizer
             a.idiv(r12); // divide by char count
             a.mov(eax, edx); // put remainder in eax
             a.pop(r15);
+        }
+
+        public struct LogRecord
+        {
+            public LogType LogType;
+            public int SquadIndex;
+            public int SpawnIndex;
+            public int ChosenValue;
+        }
+
+        private static void Record(this Assembler a, LogType type, RandomizerAllocation alloc, AssemblerRegister32 chosenValue)
+        {
+            const int recordSize = 16;
+
+            a.push(r12);
+            a.push(r13);
+
+            a.xor(r12, r12);
+            a.xor(r13, r13);
+
+            a.mov(r12, alloc.LogIndex);
+            a.imul(r12d, __dword_ptr[r12], recordSize);
+            a.mov(r13, alloc.Logs);
+            a.add(r13, r12);
+
+            // 0, LogType
+            a.mov(__dword_ptr[r13], (int)type);
+            a.add(r13, 4);
+
+            // 4, Squad index
+            a.mov(r12, alloc.SquadIndex);
+            a.mov(r12d, __dword_ptr[r12]);
+            a.mov(__[r13], r12d);
+            a.add(r13, 4);
+
+            // 8, Spawn index
+            a.mov(r12, alloc.SquadSpawnIndex);
+            a.mov(r12d, __dword_ptr[r12]);
+            a.mov(__[r13], r12d);
+            a.add(r13, 4);
+
+            // 12, Chosen value
+            a.mov(__[r13], chosenValue);
+
+            a.mov(r12, alloc.LogIndex);
+            a.add(__dword_ptr[r12], 1);
+
+            a.pop(r13);
+            a.pop(r12);
+        }
+
+        public enum LogType
+        {
+            CharacterChoice = 1,
+            WeaponChoice = 2,
         }
     }
 }
