@@ -23,7 +23,7 @@ namespace H2Randomizer
 
         public RandomizerAllocation Alloc;
         public ILevelData Level { get; private set; }
-        
+
         private LevelDataAllocation levelData;
 
 
@@ -41,6 +41,14 @@ namespace H2Randomizer
         {
             this.AppendLog($"Hooking on {context.Level}");
 
+            // Need to change the pool before getting an instance of levelData
+            if (context.ShouldRandomizeWeapons)
+                LevelData.UseFullyRandomWeapons();
+            else if (context.ShouldRandomizeNaturalWeapons)
+                LevelData.UseNaturalWeapons();
+            else
+                LevelData.UseFullyRandomWeapons();
+
             if (!LevelData.TryGet(context.Level, out var levelData))
             {
                 this.AppendLog("Hook failed");
@@ -55,11 +63,11 @@ namespace H2Randomizer
             this.AppendLog($"Randomizing AI placement on {context.Level}");
             this.hookedChars = true;
 
-            if (context.ShouldRandomizeWeapons)
+            if (context.ShouldRandomizeWeapons || context.ShouldRandomizeNaturalWeapons)
             {
                 this.WriteWeapIndexRng();
                 this.WriteWeapIndexCall();
-                this.AppendLog($"Randomizing AI weapons on {context.Level}");
+                this.AppendLog($"Randomizing AI weapons ({(context.ShouldRandomizeWeapons ? "full" : "natural")}) on {context.Level}");
                 this.hookedWeaps = true;
             }
 

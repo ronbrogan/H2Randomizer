@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="150"
+        x:Class="H2Randomizer.About"
+		Width="400"
+		Height="150"
+		CanResize="False"
+        Title="About">
+	<StackPanel Orientation="Vertical" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+		<Label>H2Randomizer by doubl3h3lix</Label>
+		<Label PointerReleased="GotoGithub" Foreground="CornflowerBlue" Cursor="Hand" IsTabStop="True">https://github.com/ronbrogan/H2Randomizer</Label>
+	</StackPanel>
+</Window>

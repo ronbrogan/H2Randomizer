@@ -163,7 +163,7 @@ namespace H2Randomizer
             // randomize
             a.Label(ref randomize);
             a.GenerateCoreRng(alloc);
-            
+
 
             // do lookup for allowed weapon
             a.lea(rax, __dword_ptr[rsi + rax * 4]);
@@ -212,7 +212,7 @@ namespace H2Randomizer
             ass.mov(rcx, charRng);
             ass.call(rcx);
             ass.mov(dx, ax);
-            
+
             ass.test(dx, dx);
             ass.js((ulong)rip + 9 + 0x183);
             ass.nop();

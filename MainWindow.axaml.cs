@@ -1,17 +1,15 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Threading;
 using PropertyChanged;
 using Superintendent.CommandSink;
 using Superintendent.Core.Native;
 using Superintendent.Core.Remote;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,9 +28,13 @@ namespace H2Randomizer
 
         public string? SeedText { get; set; } = "";
 
+        public bool UnrandomizedWeapons { get; set; }
+
         public bool ShouldRandomizeWeapons { get; set; }
 
-        public string Version { get; set; } = "v" + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion;
+        public bool ShouldRandomizeNaturalWeapons { get; set; }
+
+        public string Version { get; set; } = "v" + FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName).FileVersion;
     }
 
     [PropertyChanged.DoNotNotify]
@@ -56,7 +58,9 @@ namespace H2Randomizer
             DataContext = this.context;
 
             this.context.SeedText = Preferences.Current.Seed;
+            this.context.UnrandomizedWeapons = Preferences.Current.UnrandomizedWeapons;
             this.context.ShouldRandomizeWeapons = Preferences.Current.RandomizeAiWeapons;
+            this.context.ShouldRandomizeNaturalWeapons = Preferences.Current.RandomizeAiWeaponsNaturally;
             this.logbox = this.Get<TextBox>(nameof(Logs));
 
             this.Process = new RpcRemoteProcess();
@@ -73,7 +77,7 @@ namespace H2Randomizer
             {
                 if (ex.NativeErrorCode == 0x5/*ACCESS_DENIED*/)
                 {
-                    //App.RestartAsAdmin();
+                    App.RestartAsAdmin();
                 }
             }
 
@@ -86,7 +90,7 @@ namespace H2Randomizer
             if (h2dll == null)
                 return false;
 
-            if(!Offsets.TryGetOffsets(h2dll, out offsets))
+            if (!Offsets.TryGetOffsets(h2dll, out offsets))
             {
                 this.AppendLog($"Tried to attach, but version {h2dll.FileVersionInfo.FileVersion} is not supported");
                 return false;
@@ -121,7 +125,7 @@ namespace H2Randomizer
 
         public void Fail(object? sender, AttachExceptionArgs a)
         {
-            throw a.Exception;
+            this.AppendLog(a.Exception.ToString());
         }
 
         private string lastLevel = null;
@@ -136,7 +140,7 @@ namespace H2Randomizer
                     await Task.Delay(500);
                     continue;
                 }
-                
+
                 // When going to MCC menu, halo2.dll is deallocated, so this blows up
                 try
                 {
@@ -179,7 +183,7 @@ namespace H2Randomizer
             else
             {
                 this.context.Level = level;
-                
+
                 this.logPollCts = new();
 
                 this.randomizer = new Randomizer(this.offsets, this.Process, this.context, this.h2, this.mem, this.AppendLog);
@@ -200,23 +204,35 @@ namespace H2Randomizer
 
         private void ProcessLogs(ReadOnlySpan<byte> logBytes)
         {
-            this.h2.WriteAt(this.randomizer.Alloc.LogIndex, 0);
-
-            var count = MemoryMarshal.Read<int>(logBytes.Slice(0, 4));
-            var records = MemoryMarshal.Cast<byte, LogRecord>(logBytes.Slice(4));
-
-            for(var i = 0; i < count; i++)
+            try
             {
-                var log = records[i];
+                this.h2.WriteAt(this.randomizer.Alloc.LogIndex, 0);
 
-                Func<ILevelData, int, string> choiceName = log.LogType == LogType.WeaponChoice 
-                    ? LevelData.GetWeapName 
-                    : LevelData.GetCharName;
+                var count = MemoryMarshal.Read<int>(logBytes.Slice(0, 4));
+                var records = MemoryMarshal.Cast<byte, LogRecord>(logBytes.Slice(4));
+
+                var level = this.randomizer.Level;
+
+                for (var i = 0; i < count; i++)
+                {
+                    var log = records[i];
+
+                    Func<int, string> choiceName = log.LogType == LogType.WeaponChoice
+                        ? level.GetWeaponName
+                        : level.GetCharacterName;
 
 #if DEBUG
-                this.AppendLog($"{log.LogType} / {log.SquadIndex} / {log.SpawnIndex} => {choiceName(this.randomizer.Level, log.ChosenValue)}");
+                    this.AppendLog($"{log.LogType} / {log.SquadIndex} / {log.SpawnIndex} => {choiceName(log.ChosenValue)}");
+#endif
+                }
+            }
+            catch(Exception e)
+            {
+#if DEBUG
+                this.AppendLog(e.ToString());
 #endif
             }
+
         }
 
         private void AppendLog(string log)
@@ -232,7 +248,9 @@ namespace H2Randomizer
         private void SavePreferences()
         {
             Preferences.Current.Seed = this.context.SeedText;
+            Preferences.Current.UnrandomizedWeapons = this.context.UnrandomizedWeapons;
             Preferences.Current.RandomizeAiWeapons = this.context.ShouldRandomizeWeapons;
+            Preferences.Current.RandomizeAiWeaponsNaturally = this.context.ShouldRandomizeNaturalWeapons;
             Preferences.Persist();
         }
 
@@ -240,6 +258,12 @@ namespace H2Randomizer
         {
             this.SavePreferences();
             base.OnClosing(e);
+        }
+
+        public void ShowAbout(object sender, PointerReleasedEventArgs a)
+        {
+            var abt = new About();
+            abt.ShowDialog(this);
         }
     }
 }

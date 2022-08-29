@@ -39,7 +39,7 @@ namespace H2Randomizer
 
         public static bool TryGetOffsets(ProcessModule dll, out Offsets offsets)
         {
-            if(lookup.TryGetValue(dll.FileVersionInfo.FileVersion, out var factory))
+            if (lookup.TryGetValue(dll.FileVersionInfo.FileVersion, out var factory))
             {
                 offsets = factory();
                 return true;

@@ -32,7 +32,7 @@ namespace H2Randomizer
                 {
                     File.WriteAllText(Filepath, JsonSerializer.Serialize(Current));
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     Filepath = Path.Combine(Path.GetTempPath(), "H2Randomizer", Filename);
                     Directory.CreateDirectory(Path.GetDirectoryName(Filepath));
@@ -43,7 +43,9 @@ namespace H2Randomizer
         public Preferences() { }
 
         public string Seed { get; set; } = "";
+        public bool UnrandomizedWeapons { get; set; }
         public bool RandomizeAiWeapons { get; set; }
+        public bool RandomizeAiWeaponsNaturally { get; set; }
 
         public static Preferences Current;
 

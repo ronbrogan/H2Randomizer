@@ -33,5 +33,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<AvaloniaResource Include="H2Randomizer.ico" />
+		<AvaloniaResource Include="*/**/*.xaml" />
 	</ItemGroup>
 </Project>
