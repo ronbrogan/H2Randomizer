@@ -10,6 +10,9 @@ namespace H2Randomizer
         public nint WeaponIndexPatch { get; init; } // 4C 0F BF C9 45 85 C9 78 ?? 45 3B 8A 98 00 00 00
         public nint LevelName { get; init; }
 
+        public nint ScnrPointer { get; init; }
+        public nint DefaultPlacementPatch { get; init; }
+
         public static Offsets v1_2448()
         {
             return new Offsets
@@ -37,7 +40,10 @@ namespace H2Randomizer
             {
                 CharIndexPatch = 0x638FFB,
                 WeaponIndexPatch = 0x62136C,
-                LevelName = 0xD54498
+                LevelName = 0xD54498,
+
+                ScnrPointer = 0xd52dc8,
+                DefaultPlacementPatch = 0x8fbb7b
             };
         }
 

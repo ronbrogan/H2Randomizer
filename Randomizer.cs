@@ -58,18 +58,21 @@ namespace H2Randomizer
 
             this.SetupData(levelData);
 
-            this.WriteCharIndexRng();
-            this.WriteCharIndexCall();
-            this.AppendLog($"Randomizing AI placement on {context.Level}");
-            this.hookedChars = true;
+            //this.WriteCharIndexRng();
+            //this.WriteCharIndexCall();
+            //this.AppendLog($"Randomizing AI placement on {context.Level}");
+            //this.hookedChars = true;
+            //
+            //if (context.ShouldRandomizeWeapons || context.ShouldRandomizeNaturalWeapons)
+            //{
+            //    this.WriteWeapIndexRng();
+            //    this.WriteWeapIndexCall();
+            //    this.AppendLog($"Randomizing AI weapons ({(context.ShouldRandomizeWeapons ? "full" : "natural")}) on {context.Level}");
+            //    this.hookedWeaps = true;
+            //}
 
-            if (context.ShouldRandomizeWeapons || context.ShouldRandomizeNaturalWeapons)
-            {
-                this.WriteWeapIndexRng();
-                this.WriteWeapIndexCall();
-                this.AppendLog($"Randomizing AI weapons ({(context.ShouldRandomizeWeapons ? "full" : "natural")}) on {context.Level}");
-                this.hookedWeaps = true;
-            }
+            this.WritePlacementRng();
+            this.WritePlacementCall();
 
             return true;
         }
@@ -156,6 +159,30 @@ namespace H2Randomizer
             this.process.SetProtection(rip, bytes.Length, MemoryProtection.ExecuteReadWrite);
             this.h2.Write(offsets.WeaponIndexPatch, bytes.AsSpan());
         }
+
+        private void WritePlacementRng()
+        {
+            var bytes = RngCodeGen.GeneratePlacementRng(this.Alloc, this.h2.GetBaseOffset(), this.offsets);
+
+            if (Alloc.placementRng == default)
+            {
+                mem.Allocate(bytes.Length, out Alloc.placementRng);
+            }
+
+            this.h2.WriteAt(Alloc.placementRng, bytes);
+        }
+
+        private void WritePlacementCall()
+        {
+            var rip = this.h2.GetBaseOffset() + offsets.DefaultPlacementPatch;
+
+            var bytes = RngCodeGen.GeneratePlacementHook(Alloc.placementRng, rip);
+
+            Debug.Assert(bytes.Length == 14);
+
+            this.process.SetProtection(rip, bytes.Length, MemoryProtection.ExecuteReadWrite);
+            this.h2.Write(offsets.DefaultPlacementPatch, bytes.AsSpan());
+        }
     }
 
     public struct RandomizerAllocation
@@ -166,6 +193,8 @@ namespace H2Randomizer
         public nint CharacterIndex;
         public nint charRng;
         public nint weapRng;
+        public nint placementRng;
+
 
         public nint Logs;
         public nint LogIndex;

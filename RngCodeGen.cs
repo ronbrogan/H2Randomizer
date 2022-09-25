@@ -223,6 +223,80 @@ namespace H2Randomizer
             return memoryStream.ToArray();
         }
 
+        public static byte[] GeneratePlacementRng(RandomizerAllocation alloc, nint h2base, Offsets offsets)
+        {
+            // original definition index is pointed to by r14
+            // result needs to be in cx
+
+            var a = new Assembler(64);
+            var randomizeCrates = a.CreateLabel("randomizeCrates");
+            var randomize = a.CreateLabel("randomize");
+            var normal = a.CreateLabel("normal");
+            var end = a.CreateLabel("end");
+
+
+            a.push(rax);
+            a.push(rdx);
+            a.push(r12);
+
+            a.xor(rcx, rcx);
+            a.xor(r12, r12);
+
+            // get tag type into rax
+            a.mov(eax, __[rsi + 8]);
+
+            // see if it's a bloc
+            a.cmp(eax, 0x626C6F63);
+            a.je(randomizeCrates);
+
+            a.Label(ref normal);
+            a.mov(cx, __[r14]);
+            a.jmp(end);
+
+            // Crates case
+            a.Label(ref randomizeCrates);
+            a.mov(rax, h2base + offsets.ScnrPointer);
+            a.mov(rax, __[rax]);
+            a.add(rax, 816); // bloc definition count
+            a.mov(r12d, __dword_ptr[rax]);
+            a.jmp(randomize);
+
+            // TODO: scenery, weapons, etc?
+
+            // actual randomization
+            a.Label(ref randomize);
+            GeneratePlacementRng(a, alloc);
+            a.mov(ecx, eax);
+            a.jmp(end);
+
+            a.Label(ref end);
+            a.pop(r12);
+            a.pop(rdx);
+            a.pop(rax);
+            a.ret();
+
+            using var ms = new MemoryStream();
+            a.Assemble(new StreamCodeWriter(ms), 0);
+
+            return ms.ToArray();
+        }
+
+        public static byte[] GeneratePlacementHook(nint placementRng, nint rip)
+        {
+            var ass = new Assembler(64);
+            ass.mov(rcx, placementRng);
+            ass.call(rcx);
+            ass.nop();
+            ass.nop();
+
+            using var memoryStream = new MemoryStream();
+            var result = ass.Assemble(new StreamCodeWriter(memoryStream), (ulong)rip);
+
+            return memoryStream.ToArray();
+        }
+
+        // upper bound in r12
+        // result in rax
         private static void GenerateCoreRng(this Assembler a, RandomizerAllocation alloc)
         {
             a.push(r15);
@@ -246,6 +320,25 @@ namespace H2Randomizer
             a.idiv(r12); // divide by char count
             a.mov(eax, edx); // put remainder in eax
             a.pop(r15);
+        }
+
+        // rng input in rdx
+        // upper bound in r12
+        // result in rax
+        private static void GeneratePlacementRng(this Assembler a, RandomizerAllocation alloc)
+        {
+            a.mov(rax, alloc.SeedAddress);
+            a.imul(eax, __[rax], 0x343fd);
+            a.imul(edx, eax);
+            a.imul(eax, edx, 0x41C64E6D);
+            a.imul(edx, eax);
+            a.imul(eax, edx, 0x343fd);
+            a.add(eax, 0x269ec3);
+            a.sar(eax, 0x10);
+            a.and(eax, 0x7fff);
+            a.cdq();
+            a.idiv(r12); // divide by char count
+            a.mov(eax, edx); // put remainder in eax
         }
 
         public struct LogRecord
