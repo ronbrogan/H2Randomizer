@@ -7,7 +7,7 @@
 		<TrimMode>copyused</TrimMode>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Version>1.1.0.1</Version>
+		<Version>1.2-preview1</Version>
 		<ApplicationIcon>H2Randomizer.ico</ApplicationIcon>
 	</PropertyGroup>
 	<ItemGroup>
@@ -32,7 +32,12 @@
 		<PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
 	</ItemGroup>
 	<ItemGroup>
-		<AvaloniaResource Include="H2Randomizer.ico" />
+		<Content Include="H2Randomizer.ico">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<AvaloniaResource Include="H2Randomizer.ico">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</AvaloniaResource>
 		<AvaloniaResource Include="*/**/*.xaml" />
 	</ItemGroup>
 </Project>

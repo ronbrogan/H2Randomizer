@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="425"
+        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="500"
 		Width="450"
-		Height="425"
+		Height="500"
         x:Class="H2Randomizer.MainWindow"
         Title="H2Randomizer"
 		TransparencyLevelHint="AcrylicBlur"
@@ -38,6 +38,12 @@
 					<RadioButton GroupName="weaponRandomization" IsChecked="{Binding ShouldRandomizeNaturalWeapons}">Natural</RadioButton>
 					<RadioButton GroupName="weaponRandomization" IsChecked="{Binding ShouldRandomizeWeapons}">Full Random</RadioButton>
 				</StackPanel>
+				<Label>Map Randomization:</Label>
+				<StackPanel Orientation="Horizontal" Spacing="10">
+					<RadioButton GroupName="mapRandomization">Off</RadioButton>
+					<RadioButton GroupName="mapRandomization" IsChecked="{Binding ShouldRandomizeMapItems}">On</RadioButton>
+				</StackPanel>
+					
 				<Label>Logs:</Label>
 				<TextBox Name="Logs" Text="{Binding Logs}" IsReadOnly="True" Focusable="False" Height="200" MaxHeight="200" TextWrapping="Wrap"></TextBox>
 				<StackPanel Orientation="Horizontal">

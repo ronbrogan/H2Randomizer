@@ -230,6 +230,10 @@ namespace H2Randomizer
 
             var a = new Assembler(64);
             var randomizeCrates = a.CreateLabel("randomizeCrates");
+            var randomizeBipeds = a.CreateLabel("randomizeBipeds");
+            var randomizeWeapons = a.CreateLabel("randomizeWeapons");
+            var randomizeDecals = a.CreateLabel("randomizeDecals");
+            var randomizeEquipment = a.CreateLabel("randomizeScenery");
             var randomize = a.CreateLabel("randomize");
             var normal = a.CreateLabel("normal");
             var end = a.CreateLabel("end");
@@ -245,26 +249,55 @@ namespace H2Randomizer
             // get tag type into rax
             a.mov(eax, __[rsi + 8]);
 
-            // see if it's a bloc
-            a.cmp(eax, 0x626C6F63);
+
+            a.cmp(eax, (int)TagName.bloc);
             a.je(randomizeCrates);
+
+            a.cmp(eax, (int)TagName.bipd);
+            a.je(randomizeBipeds);
+
+            a.cmp(eax, (int)TagName.weap);
+            a.je(randomizeWeapons);
+
+            a.cmp(eax, (int)TagName.deca);
+            a.je(randomizeDecals);
+            
+            a.cmp(eax, (int)TagName.eqip);
+            a.je(randomizeEquipment);
+
 
             a.Label(ref normal);
             a.mov(cx, __[r14]);
             a.jmp(end);
 
-            // Crates case
+
             a.Label(ref randomizeCrates);
-            a.mov(rax, h2base + offsets.ScnrPointer);
-            a.mov(rax, __[rax]);
-            a.add(rax, 816); // bloc definition count
-            a.mov(r12d, __dword_ptr[rax]);
+            a.mov(rcx, 816); // bloc definition count location
             a.jmp(randomize);
 
-            // TODO: scenery, weapons, etc?
+            a.Label(ref randomizeBipeds);
+            a.mov(rcx, 104); // biped definition count location
+            a.jmp(randomize);
 
-            // actual randomization
+            a.Label(ref randomizeWeapons);
+            a.mov(rcx, 152); // weapon definition count location
+            a.jmp(randomize);
+
+            a.Label(ref randomizeDecals);
+            a.mov(rcx, 320); // decal definition count location
+            a.jmp(randomize);
+
+            a.Label(ref randomizeEquipment);
+            a.mov(rcx, 136); // equipment definition count location
+            a.jmp(randomize);
+
+
+            // get definition count from scnr and randomize
             a.Label(ref randomize);
+            a.mov(rax, h2base + offsets.ScnrPointer);
+            a.mov(rax, __[rax]);
+            a.add(rax, rcx);
+            a.mov(r12d, __dword_ptr[rax]);
             GeneratePlacementRng(a, alloc);
             a.mov(ecx, eax);
             a.jmp(end);

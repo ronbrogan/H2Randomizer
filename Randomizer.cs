@@ -58,21 +58,25 @@ namespace H2Randomizer
 
             this.SetupData(levelData);
 
-            //this.WriteCharIndexRng();
-            //this.WriteCharIndexCall();
-            //this.AppendLog($"Randomizing AI placement on {context.Level}");
-            //this.hookedChars = true;
-            //
-            //if (context.ShouldRandomizeWeapons || context.ShouldRandomizeNaturalWeapons)
-            //{
-            //    this.WriteWeapIndexRng();
-            //    this.WriteWeapIndexCall();
-            //    this.AppendLog($"Randomizing AI weapons ({(context.ShouldRandomizeWeapons ? "full" : "natural")}) on {context.Level}");
-            //    this.hookedWeaps = true;
-            //}
+            this.WriteCharIndexRng();
+            this.WriteCharIndexCall();
+            this.AppendLog($"Randomizing AI placement on {context.Level}");
+            this.hookedChars = true;
 
-            this.WritePlacementRng();
-            this.WritePlacementCall();
+            if (context.ShouldRandomizeWeapons || context.ShouldRandomizeNaturalWeapons)
+            {
+                this.WriteWeapIndexRng();
+                this.WriteWeapIndexCall();
+                this.AppendLog($"Randomizing AI weapons ({(context.ShouldRandomizeWeapons ? "full" : "natural")}) on {context.Level}");
+                this.hookedWeaps = true;
+            }
+
+            if(context.ShouldRandomizeMapItems)
+            {
+                this.WritePlacementRng();
+                this.WritePlacementCall();
+                this.AppendLog($"Randomizing map items on {context.Level}");
+            }
 
             return true;
         }

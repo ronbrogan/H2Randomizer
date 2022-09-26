@@ -34,7 +34,9 @@ namespace H2Randomizer
 
         public bool ShouldRandomizeNaturalWeapons { get; set; }
 
-        public string Version { get; set; } = "v" + FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName).FileVersion;
+        public bool ShouldRandomizeMapItems { get; set; }
+
+        public string Version { get; set; } = "v" + FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName).ProductVersion;
     }
 
     [PropertyChanged.DoNotNotify]
@@ -61,6 +63,7 @@ namespace H2Randomizer
             this.context.UnrandomizedWeapons = Preferences.Current.UnrandomizedWeapons;
             this.context.ShouldRandomizeWeapons = Preferences.Current.RandomizeAiWeapons;
             this.context.ShouldRandomizeNaturalWeapons = Preferences.Current.RandomizeAiWeaponsNaturally;
+            this.context.ShouldRandomizeMapItems = Preferences.Current.RandomizeMapItems;
             this.logbox = this.Get<TextBox>(nameof(Logs));
 
             this.Process = new RpcRemoteProcess();
@@ -251,6 +254,7 @@ namespace H2Randomizer
             Preferences.Current.UnrandomizedWeapons = this.context.UnrandomizedWeapons;
             Preferences.Current.RandomizeAiWeapons = this.context.ShouldRandomizeWeapons;
             Preferences.Current.RandomizeAiWeaponsNaturally = this.context.ShouldRandomizeNaturalWeapons;
+            Preferences.Current.RandomizeMapItems = this.context.ShouldRandomizeMapItems;
             Preferences.Persist();
         }
 

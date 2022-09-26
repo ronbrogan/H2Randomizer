@@ -44,8 +44,9 @@ namespace H2Randomizer
 
         public string Seed { get; set; } = "";
         public bool UnrandomizedWeapons { get; set; }
-        public bool RandomizeAiWeapons { get; set; }
+        public bool RandomizeAiWeapons { get; set; } = true;
         public bool RandomizeAiWeaponsNaturally { get; set; }
+        public bool RandomizeMapItems { get; set; } = true;
 
         public static Preferences Current;
 
