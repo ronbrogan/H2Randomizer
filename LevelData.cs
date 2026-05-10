@@ -150,10 +150,10 @@ namespace H2Randomizer
             ["miranda"] = Array.Empty<string>(),
             ["monitor"] = Array.Empty<string>(),
             ["prophet_regret"] = new[] { "battle_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "magnum", "needler", "plasma_pistol", "plasma_rifle", "rocket_launcher", "shotgun", "smg", "sniper_rifle" },
-            ["sentinel_aggressor"] = new[] { "battle_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
-            ["sentinel_aggressor_eliminator"] = new[] { "battle_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
-            ["sentinel_aggressor_halo1"] = new[] { "battle_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
-            ["sentinel_aggressor_major"] = new[] { "battle_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
+            ["sentinel_aggressor"] = new[] { "battle_rifle", "beam_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
+            ["sentinel_aggressor_eliminator"] = new[] { "battle_rifle", "beam_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
+            ["sentinel_aggressor_halo1"] = new[] { "battle_rifle", "beam_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
+            ["sentinel_aggressor_major"] = new[] { "battle_rifle", "beam_rifle", "brute_plasma_rifle", "covenant_carbine", "flak_cannon", "needler", "rocket_launcher", "sent_agg_beam_elim", "sentinel_aggressor_beam", "shotgun", "sniper_rifle" },
             ["sentinel_constructor"] = new[] { "sentinel_aggressor_welder" }
         };
 
@@ -204,7 +204,7 @@ namespace H2Randomizer
             ["jackal_sniper"] = CharacterWeapons["jackal_sniper"].Without(HumanWeapons),
             ["marine"] = CharacterWeapons["marine"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_dress"] = CharacterWeapons["marine_dress"].Without(CovenantWeapons).Without(ForerunnerWeapons),
-            ["marine_female"] = = CharacterWeapons["marine_female"].Without(CovenantWeapons).Without(ForerunnerWeapons),
+            ["marine_female"] = CharacterWeapons["marine_female"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_johnson"] = CharacterWeapons["marine_johnson"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_johnson_boss"] = CharacterWeapons["marine_johnson_boss"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_johnson_dress"] = CharacterWeapons["marine_johnson_dress"].Without(CovenantWeapons).Without(ForerunnerWeapons),
