@@ -197,7 +197,7 @@ namespace H2Randomizer
             ["heretic_grunt"] = CharacterWeapons["heretic_grunt"].Without(HumanWeapons),
             ["heretic_leader"] = CharacterWeapons["heretic_leader"].Without(HumanWeapons),
             ["heretic_leader_hologram"] = CharacterWeapons["heretic_leader_hologram"].Without(HumanWeapons),
-            ["heretic_major"] = CharacterWeapons["heretic"].Without(HumanWeapons),
+            ["heretic_major"] = CharacterWeapons["heretic_major"].Without(HumanWeapons),
             ["hunter"] = Array.Empty<string>(),
             ["jackal"] = CharacterWeapons["jackal"].Without(HumanWeapons),
             ["jackal_major"] = CharacterWeapons["jackal_major"].Without(HumanWeapons),
