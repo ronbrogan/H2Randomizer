@@ -204,7 +204,7 @@ namespace H2Randomizer
             ["jackal_sniper"] = CharacterWeapons["jackal_sniper"].Without(HumanWeapons),
             ["marine"] = CharacterWeapons["marine"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_dress"] = CharacterWeapons["marine_dress"].Without(CovenantWeapons).Without(ForerunnerWeapons),
-            ["marine_female"] = Array.Empty<string>(),
+            ["marine_female"] = = CharacterWeapons["marine_female"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_johnson"] = CharacterWeapons["marine_johnson"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_johnson_boss"] = CharacterWeapons["marine_johnson_boss"].Without(CovenantWeapons).Without(ForerunnerWeapons),
             ["marine_johnson_dress"] = CharacterWeapons["marine_johnson_dress"].Without(CovenantWeapons).Without(ForerunnerWeapons),
