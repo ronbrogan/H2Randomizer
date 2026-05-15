@@ -47,11 +47,25 @@ namespace H2Randomizer
             };
         }
 
+        public static Offsets v1_3528()
+        {
+            return new Offsets
+            {
+                CharIndexPatch = 0x639D2B,
+                WeaponIndexPatch = 0x62209C,
+                LevelName = 0xE70E68,
+
+            //  ScnrPointer = 0xd52dc8,
+            //  DefaultPlacementPatch = 0x902C3B
+            };
+        }      
+
         private static Dictionary<string, Func<Offsets>> lookup = new()
         {
             ["1.2448.0.0"] = v1_2448,
             ["1.2904.0.0"] = v1_2904,
             ["1.2969.0.0"] = v1_2969,
+            ["1.3528.0.0"] = v1_3528,
         };
 
         public static bool TryGetOffsets(ProcessModule dll, out Offsets offsets)
@@ -62,7 +76,7 @@ namespace H2Randomizer
                 return true;
             }
 
-            offsets = v1_2969();
+            offsets = v1_3528();
             return false;
         }
     }
